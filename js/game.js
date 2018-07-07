@@ -22,7 +22,7 @@ let game = new Phaser.Game(config);
 var map;
 var player;
 var cursors;
-var groundLayer, chocoLayer;
+var groundLayer, chocoLayer, coinLayer;
 
 function preload() {
     // map made with Tiled in JSON format
@@ -30,6 +30,8 @@ function preload() {
     // tiles in spritesheet 
     this.load.spritesheet('sand', 'assets/sand.png', { frameWidth: 70, frameHeight: 70 });
     this.load.spritesheet('choco', 'assets/choco.png', { frameWidth: 70, frameHeight: 70 });
+    // simple coin image
+    this.load.image('coin', 'assets/coin.png');
     // simple Gilgamesh cat
     this.load.image('gilgamesh', 'assets/gilgamesh.png');
 }
@@ -50,6 +52,9 @@ function create() {
     groundLayer.setCollisionByExclusion([-1]);
     chocoLayer.setCollisionByExclusion([-1]);
 
+    var coinTiles = map.addTilesetImage('coin');
+    coinLayer = map.createDynamicLayer('Coin', coinTiles, 0, 0);
+
     // set the boundaries of our game world
     this.physics.world.bounds.width = groundLayer.width;
     this.physics.world.bounds.height = groundLayer.height;
@@ -66,6 +71,11 @@ function create() {
     this.physics.add.collider(groundLayer, player);
     this.physics.add.collider(chocoLayer, player);
 
+    coinLayer.setTileIndexCallback(85, collectCoin, this);
+    // // when the player overlaps with a tile with index 85, collectCoin 
+    // // will be called    
+    this.physics.add.overlap(player, coinLayer);
+
     cursors = this.input.keyboard.createCursorKeys();
 
     // // set bounds so the camera won't go outside the game world
@@ -78,14 +88,22 @@ function create() {
 
 }
 
+// this function will be called when the player touches a coin
+function collectCoin(sprite, tile) {
+    coinLayer.removeTileAt(tile.x, tile.y); // remove the tile/coin
+    // score++; // add 10 points to the score
+    // text.setText(score); // set the text to show the current score
+    return false;
+}
+
 function update() {
-     if (cursors.left.isDown) {
+    if (cursors.left.isDown) {
         player.body.setVelocityX(-200);
-        player.flipX = false; // flip the sprite to the left
+        player.flipX = true; // flip the sprite to the left
     }
     else if (cursors.right.isDown) {
         player.body.setVelocityX(200);
-        player.flipX = true; // use the original sprite looking to the right
+        player.flipX = false; // use the original sprite looking to the right
     } else {
         player.body.setVelocityX(0);
     }

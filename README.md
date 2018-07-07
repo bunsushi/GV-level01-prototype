@@ -18,8 +18,9 @@ To get this demo running on your local machine:
 - You'll be installing the following node packages:
   - grunt
   - grunt-contrib-connect
-3. ```grunt connect```
-4. open up [localhost:8000](http://localhost:8000) to play!
+3. If you don't have Grunt CLI installed yet, run ```npm install -g grunt-cli``` to be able to use Grunt commands in the terminal.
+4. ```grunt connect```
+5. open up [localhost:8000](http://localhost:8000) to play!
 
 ## Chrome Users
 
