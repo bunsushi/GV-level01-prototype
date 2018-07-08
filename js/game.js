@@ -22,9 +22,11 @@ let game = new Phaser.Game(config);
 var map;
 var player;
 var cursors;
-var groundLayer, chocoLayer, coinLayer;
+var groundLayer, chocoLayer, coinLayer, enemyLayer;
 var text;
 var score = 0;
+var enemy;
+var fly;
 
 function preload() {
     // map made with Tiled in JSON format
@@ -36,6 +38,11 @@ function preload() {
     this.load.image('coin', 'assets/coin.png');
     // simple Gilgamesh cat
     this.load.image('gilgamesh', 'assets/gilgamesh.png');
+    // enemy fly
+    this.load.image('fly', 'assets/fly_fly.png');
+    // enemy fly spritesheet
+    this.load.spritesheet('enemy', 'assets/go-fly.png', { frameWidth: 70, frameHeight: 40 });
+
 }
 
 function create() {
@@ -72,6 +79,25 @@ function create() {
     // player will collide with the level tiles 
     this.physics.add.collider(groundLayer, player);
     this.physics.add.collider(chocoLayer, player);
+
+    // create the fly animation
+    fly = this.physics.add.sprite(50, 550, 'enemy');
+    fly.setCollideWorldBounds(true);
+    fly.body.setVelocityX(100);
+
+    // adjust fly to be above the ground slightly
+    fly.body.setSize(fly.width, fly.height + 20);
+
+    // enemy will collide with the level tiles
+    this.physics.add.collider(groundLayer, fly);
+    this.physics.add.collider(chocoLayer, fly);
+
+    this.anims.create({
+        key: 'fly',
+        frames: this.anims.generateFrameNumbers('enemy', { start: 0, end: 1 }),
+        frameRate: 7,
+        repeat: -1
+    });
 
     coinLayer.setTileIndexCallback(85, collectCoin, this);
     // // when the player overlaps with a tile with index 85, collectCoin 
@@ -117,9 +143,21 @@ function update() {
         player.flipX = false; // use the original sprite looking to the right
     } else {
         player.body.setVelocityX(0);
+        fly.anims.play('fly', true);
     }
     // jump 
     if (cursors.up.isDown && player.body.onFloor()) {
         player.body.setVelocityY(-500);
     }
+
+    if (fly.body.blocked.right) {
+        fly.body.setVelocityX(-100);
+        fly.flipX = true;
+    }
+
+    if (fly.body.blocked.left) {
+        fly.body.setVelocityX(100);
+        fly.flipX = false;
+    }
+
 };
