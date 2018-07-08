@@ -5,7 +5,7 @@ let config = {
     physics: {
         default: 'arcade',
         arcade: {
-            gravity: { y: 500 },
+            gravity: { y: 800 },
             debug: false
         }
     },
@@ -23,6 +23,8 @@ var map;
 var player;
 var cursors;
 var groundLayer, chocoLayer, coinLayer;
+var text;
+var score = 0;
 
 function preload() {
     // map made with Tiled in JSON format
@@ -86,13 +88,22 @@ function create() {
     // set background color, so the sky is not black    
     this.cameras.main.setBackgroundColor('#b4c3d1');
 
+    // this text will show the score
+    text = this.add.text(20, 20, "score: " + score, {
+        fontSize: '20px',
+        fontWeight: 'bold',
+        fill: '#ffffff'
+    });
+    // fix the text to the camera
+    text.setScrollFactor(0);
+
 }
 
 // this function will be called when the player touches a coin
 function collectCoin(sprite, tile) {
     coinLayer.removeTileAt(tile.x, tile.y); // remove the tile/coin
-    // score++; // add 10 points to the score
-    // text.setText(score); // set the text to show the current score
+    score++; // add 1 point to the score
+    text.setText("score: " + score); // set the text to show the current score
     return false;
 }
 
@@ -109,6 +120,6 @@ function update() {
     }
     // jump 
     if (cursors.up.isDown && player.body.onFloor()) {
-        player.body.setVelocityY(-400);
+        player.body.setVelocityY(-500);
     }
 };
