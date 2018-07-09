@@ -29,7 +29,7 @@ var fly;
 var life = 10;
 var lifeText;
 var gameOver = false;
-var lion;
+var lion, croc;
 var coins;
 
 function preload() {
@@ -43,11 +43,13 @@ function preload() {
     // simple Gilgamesh cat
     this.load.image('gilgamesh', 'assets/gilgamesh.png');
     // TODO: make this into an actual spritesheet w/walking animations
-    this.load.spritesheet('gilgamesh-ghost', 'assets/gilgamesh-ghost.png', {frameWidth: 90, frameHeight: 90 });
+    this.load.spritesheet('gilgamesh-ghost', 'assets/gilgamesh-ghost.png', { frameWidth: 90, frameHeight: 90 });
     // enemy fly spritesheet
     this.load.spritesheet('enemy', 'assets/go-fly.png', { frameWidth: 70, frameHeight: 40 });
     // citizen lion
-    this.load.image('lion', 'assets/lion.png');
+    this.load.image('lion', 'assets/051-lion.png');
+    this.load.image('croc', 'assets/citizens/051-crocodile.png');
+
 
 }
 
@@ -133,6 +135,22 @@ function create() {
 
     // enemy collides with player
     this.physics.add.overlap(player, lion, attackHandler, null, this);
+
+    // create the lion
+    croc = this.physics.add.sprite(1070, 500, 'croc');
+    croc.setCollideWorldBounds(true);
+    croc.body.setVelocityX(100);
+    croc.hitPoints = 3;
+
+    // adjust lion to be above the ground slightly
+    croc.body.setSize(croc.width, croc.height - 70);
+
+    // lion will collide with the level tiles
+    this.physics.add.collider(groundLayer, croc);
+    this.physics.add.collider(chocoLayer, croc);
+
+    // enemy collides with player
+    this.physics.add.overlap(player, croc, attackHandler, null, this);
 
     coinLayer.setTileIndexCallback(85, collectCoin, this);
     // // when the player overlaps with a tile with index 85, collectCoin 
@@ -258,12 +276,12 @@ function attackHandler(player, lion) {
         }
 
         player.immune = true;
-        console.log(player.immune + " Haha! I'm immune for two seconds!")
+        console.log(player.immune + " Haha! I'm immune for one second!")
 
         setTimeout(function () {
             player.immune = false;
             console.log(player.immune + " Drat! I'm mortal again");
-        }, 2000);
+        }, 1000);
     }
 }
 
