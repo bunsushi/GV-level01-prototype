@@ -48,7 +48,7 @@ function preload() {
     this.load.spritesheet('enemy', 'assets/go-fly.png', { frameWidth: 70, frameHeight: 40 });
     // citizen lion
     this.load.image('lion', 'assets/051-lion.png');
-    this.load.image('croc', 'assets/citizens/051-crocodile.png');
+    this.load.image('croc', 'assets/051-crocodile.png');
 
 
 }
