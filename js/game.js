@@ -42,6 +42,8 @@ function preload() {
     this.load.image('coin', 'assets/coin.png');
     // simple Gilgamesh cat
     this.load.image('gilgamesh', 'assets/gilgamesh.png');
+    // TODO: make this into an actual spritesheet w/walking animations
+    this.load.spritesheet('gilgamesh-ghost', 'assets/gilgamesh-ghost.png', {frameWidth: 90, frameHeight: 90 });
     // enemy fly spritesheet
     this.load.spritesheet('enemy', 'assets/go-fly.png', { frameWidth: 70, frameHeight: 40 });
     // citizen lion
@@ -105,6 +107,13 @@ function create() {
     this.anims.create({
         key: 'fly',
         frames: this.anims.generateFrameNumbers('enemy', { start: 0, end: 1 }),
+        frameRate: 7,
+        repeat: -1
+    });
+
+    this.anims.create({
+        key: 'ghost',
+        frames: this.anims.generateFrameNumbers('gilgamesh-ghost', { start: 0, end: 0 }),
         frameRate: 7,
         repeat: -1
     });
@@ -179,6 +188,7 @@ function collisionHandler(player, fly) {
 
     if (player.immune === false) {
         console.log("boop");
+        // player.anims.play('ghost', true);
         life--;
         lifeText.setText("life: " + life);
         if (fly.body.touching.left) {
