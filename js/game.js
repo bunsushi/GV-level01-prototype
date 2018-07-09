@@ -6,7 +6,7 @@ let config = {
         default: 'arcade',
         arcade: {
             gravity: { y: 800 },
-            debug: false
+            debug: true
         }
     },
     scene: {
@@ -27,6 +27,10 @@ var text;
 var score = 0;
 var enemy;
 var fly;
+var life = 10;
+var lifeText;
+var test = false;
+var gameOver = false;
 
 function preload() {
     // map made with Tiled in JSON format
@@ -38,8 +42,6 @@ function preload() {
     this.load.image('coin', 'assets/coin.png');
     // simple Gilgamesh cat
     this.load.image('gilgamesh', 'assets/gilgamesh.png');
-    // enemy fly
-    this.load.image('fly', 'assets/fly_fly.png');
     // enemy fly spritesheet
     this.load.spritesheet('enemy', 'assets/go-fly.png', { frameWidth: 70, frameHeight: 40 });
 
@@ -72,6 +74,7 @@ function create() {
     player = this.physics.add.sprite(50, 50, 'gilgamesh');
     player.setBounce(0.1); // our player will bounce from items
     player.setCollideWorldBounds(true); // don't go out of the map    
+    player.immune = false;
 
     // small fix to our player images, we resize the physics body object slightly
     player.body.setSize(player.width - 60, player.height - 8);
@@ -83,6 +86,7 @@ function create() {
     // create the fly animation
     fly = this.physics.add.sprite(50, 550, 'enemy');
     fly.setCollideWorldBounds(true);
+    // fly.setBounce(0.2);
     fly.body.setVelocityX(100);
 
     // adjust fly to be above the ground slightly
@@ -91,6 +95,9 @@ function create() {
     // enemy will collide with the level tiles
     this.physics.add.collider(groundLayer, fly);
     this.physics.add.collider(chocoLayer, fly);
+
+    // this.physics.add.collider(player, fly, collisionHandler, null, this);
+    this.physics.add.overlap(player, fly, collisionHandler, null, this);
 
     this.anims.create({
         key: 'fly',
@@ -120,6 +127,14 @@ function create() {
         fontWeight: 'bold',
         fill: '#ffffff'
     });
+
+    lifeText = this.add.text(900, 20, "life: " + life, {
+        fontSize: '20px',
+        fontWeight: 'bold',
+        fill: '#ffffff'
+    });
+
+    lifeText.setScrollFactor(0);
     // fix the text to the camera
     text.setScrollFactor(0);
 
@@ -133,7 +148,45 @@ function collectCoin(sprite, tile) {
     return false;
 }
 
+function collisionHandler(player, fly) {
+
+    if (player.immune === false) {
+        console.log("boop");
+        life--;
+        lifeText.setText("life: " + life);
+        if (fly.body.touching.left) {
+            fly.body.velocity.x = 150;
+            fly.flipX = false;
+            console.log("touchin' left");
+        } else if (fly.body.touching.right) {
+            fly.body.velocity.x = -150;
+            fly.flipX = true;
+            console.log("touchin' right");
+        }
+
+        player.immune = true;
+        console.log(player.immune + " Haha! I'm immune for one second!")
+
+        setTimeout(function() {
+            player.immune = false;
+            console.log(player.immune + " Drat! I'm mortal again");
+        }, 1000);
+
+        checkForLoss();
+    }
+}
+
+function checkForLoss() {
+    if (life === 0) {
+        gameOver = true;
+    }
+}
+
 function update() {
+    if (gameOver) {
+        this.physics.pause();
+    }
+
     if (cursors.left.isDown) {
         player.body.setVelocityX(-200);
         player.flipX = true; // flip the sprite to the left
