@@ -6,7 +6,7 @@ let config = {
         default: 'arcade',
         arcade: {
             gravity: { y: 800 },
-            debug: true
+            debug: false
         }
     },
     scene: {
@@ -22,15 +22,15 @@ let game = new Phaser.Game(config);
 var map;
 var player;
 var cursors;
-var groundLayer, chocoLayer, coinLayer, enemyLayer;
+var groundLayer, chocoLayer, coinLayer;
 var text;
 var score = 0;
-var enemy;
 var fly;
 var life = 10;
 var lifeText;
-var test = false;
 var gameOver = false;
+var lion;
+var coins;
 
 function preload() {
     // map made with Tiled in JSON format
@@ -44,6 +44,8 @@ function preload() {
     this.load.image('gilgamesh', 'assets/gilgamesh.png');
     // enemy fly spritesheet
     this.load.spritesheet('enemy', 'assets/go-fly.png', { frameWidth: 70, frameHeight: 40 });
+    // citizen lion
+    this.load.image('lion', 'assets/lion.png');
 
 }
 
@@ -86,7 +88,6 @@ function create() {
     // create the fly animation
     fly = this.physics.add.sprite(50, 550, 'enemy');
     fly.setCollideWorldBounds(true);
-    // fly.setBounce(0.2);
     fly.body.setVelocityX(100);
 
     // adjust fly to be above the ground slightly
@@ -96,8 +97,10 @@ function create() {
     this.physics.add.collider(groundLayer, fly);
     this.physics.add.collider(chocoLayer, fly);
 
-    // this.physics.add.collider(player, fly, collisionHandler, null, this);
+    // enemy collides with player
     this.physics.add.overlap(player, fly, collisionHandler, null, this);
+
+    // enemy collides with player's shield (don't lose life, just bounce back your enemy!)
 
     this.anims.create({
         key: 'fly',
@@ -105,6 +108,22 @@ function create() {
         frameRate: 7,
         repeat: -1
     });
+
+    // create the lion
+    lion = this.physics.add.sprite(100, 50, 'lion');
+    lion.setCollideWorldBounds(true);
+    lion.body.setVelocityX(100);
+    lion.hitPoints = 3;
+
+    // adjust lion to be above the ground slightly
+    lion.body.setSize(lion.width, lion.height - 8);
+
+    // lion will collide with the level tiles
+    this.physics.add.collider(groundLayer, lion);
+    this.physics.add.collider(chocoLayer, lion);
+
+    // enemy collides with player
+    this.physics.add.overlap(player, lion, attackHandler, null, this);
 
     coinLayer.setTileIndexCallback(85, collectCoin, this);
     // // when the player overlaps with a tile with index 85, collectCoin 
@@ -148,6 +167,14 @@ function collectCoin(sprite, tile) {
     return false;
 }
 
+// this function will be called when the player touches a coin
+function robNPC(player, coin) {
+    coin.disableBody(true, true); // remove the tile/coin
+    score++; // add 1 point to the score
+    text.setText("score: " + score); // set the text to show the current score
+    return false;
+}
+
 function collisionHandler(player, fly) {
 
     if (player.immune === false) {
@@ -167,7 +194,7 @@ function collisionHandler(player, fly) {
         player.immune = true;
         console.log(player.immune + " Haha! I'm immune for one second!")
 
-        setTimeout(function() {
+        setTimeout(function () {
             player.immune = false;
             console.log(player.immune + " Drat! I'm mortal again");
         }, 1000);
@@ -182,9 +209,58 @@ function checkForLoss() {
     }
 }
 
+function attackHandler(player, lion) {
+
+    if (player.immune === false && cursors.space.isDown) {
+        console.log(lion.hitPoints);
+        console.log("knock knock");
+        lion.hitPoints--;
+        if (lion.hitPoints === 0) {
+            console.log("moneyyyy");
+            //  Some coins to collect, 10 in total, evenly spaced 70 pixels apart along the x axis
+            coins = this.physics.add.group({
+                key: 'coin',
+                repeat: 9,
+                setXY: { x: lion.x - 350, y: lion.y - 100, stepX: 70 }
+            });
+
+            coins.children.iterate(function (child) {
+
+                //  Give each star a slightly different bounce
+                child.setBounceY(Phaser.Math.FloatBetween(0.5, 1));
+
+            });
+
+            this.physics.add.collider(groundLayer, coins);
+            this.physics.add.collider(chocoLayer, coins);
+            this.physics.add.overlap(player, coins, robNPC, null, this);
+
+            lion.disableBody(true, true);
+        }
+        else if (lion.body.touching.left) {
+            // lion.body.velocity.x = 150;
+            lion.flipX = false;
+            console.log("that smarts!");
+        } else if (lion.body.touching.right) {
+            // lion.body.velocity.x = -150;
+            lion.flipX = true;
+            console.log("hey!");
+        }
+
+        player.immune = true;
+        console.log(player.immune + " Haha! I'm immune for two seconds!")
+
+        setTimeout(function () {
+            player.immune = false;
+            console.log(player.immune + " Drat! I'm mortal again");
+        }, 2000);
+    }
+}
+
 function update() {
     if (gameOver) {
-        this.physics.pause();
+        // this.physics.pause();
+        window.location.reload();
     }
 
     if (cursors.left.isDown) {
